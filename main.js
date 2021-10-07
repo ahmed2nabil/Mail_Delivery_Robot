@@ -11,11 +11,12 @@ function buildGraph(edges) {
     let graph = Object.create(null);
     function addEdge(from, to) {
     if (graph[from] == null) {
-    graph[from] = [to];
+    graph[from] = [to]; //make an array if not have an entry
     } else {
-    graph[from].push(to);
+    graph[from].push(to); //push if entry exists
     }
     }
+    //edges is undirected this makes it undirectional
     for (let [from, to] of edges.map(r => r.split("-"))) {
     addEdge(from, to);
     addEdge(to, from);
@@ -69,3 +70,36 @@ let first = new VillageState(
     // → []
     console.log(first.place);
     // → Post Office
+function runRobot(state, robot, memory) {
+    for (let turn = 0;; turn++) {
+    if (state.parcels.length == 0) {
+    console.log(`Done in ${turn} turns`);
+    break;
+    }
+    let action = robot(state, memory);
+    state = state.move(action.direction);
+    memory = action.memory;
+    console.log(`Moved to ${action.direction}`);
+    }
+    }
+function randomPick(array) {
+    let choice = Math.floor(Math.random() * array.length);
+    return array[choice];
+    }
+function randomRobot(state) {
+    return {direction: randomPick(roadGraph[state.place])};
+}
+
+VillageState.random = function(parcelCount = 5) {
+    let parcels = [];
+    for (let i = 0; i < parcelCount; i++) {
+      let address = randomPick(Object.keys(roadGraph)); //to generate one of te places you can come from
+      let place;
+      do {
+        place = randomPick(Object.keys(roadGraph)); 
+      } while (place == address);
+      parcels.push({place, address}); 
+    }
+    return new VillageState("Post Office", parcels);
+  };
+  console.log(runRobot(VillageState.random(), randomRobot));
